@@ -1,64 +1,77 @@
 import tkinter as tk
 from tkinter import messagebox
-import re
-from function import register_user, login_user
+from function import init_db, get_user_info, update_user_info
+from auth import show_login_register
+from static.style import configure_root
+from static.record import ActionLogger
+
+# 初始化資料庫
+init_db()
+
+# 建立 logger 實例
+logger = ActionLogger()
+
+# 全域變數
+current_user = None
 
 
-# 驗證電子郵件格式
-def validate_email(email):
-    return re.match(r"^[a-zA-Z0-9._%+-]+@gmail\.com$", email)
+# 顯示個人資料視窗
+def show_profile():
+    profile_window = tk.Toplevel(root)
+    profile_window.title("Profile")
+
+    user_info = get_user_info(current_user)
+
+    tk.Label(profile_window, text="Username:").pack()
+    username_label = tk.Label(profile_window, text=user_info["username"])
+    username_label.pack()
+
+    tk.Label(profile_window, text="Email:").pack()
+    email_entry = tk.Entry(profile_window)
+    email_entry.insert(0, user_info["email"])
+    email_entry.pack()
+
+    tk.Label(profile_window, text="Phone:").pack()
+    phone_entry = tk.Entry(profile_window)
+    phone_entry.insert(0, user_info["phone"])
+    phone_entry.pack()
+
+    def save_profile():
+        new_email = email_entry.get()
+        new_phone = phone_entry.get()
+        update_user_info(current_user, new_email, new_phone)
+        messagebox.showinfo("Success", "Profile updated successfully!")
+        profile_window.destroy()
+
+    tk.Button(profile_window, text="Save", command=save_profile).pack()
 
 
-# 驗證密碼格式
-def validate_password(password):
-    return re.match(r"^(?=.*[a-z])(?=.*[A-Z]).+$", password)
+# 顯示使用者介面
+def show_user_interface():
+    user_interface_frame = tk.Frame(root)
+    user_interface_frame.pack()
+    tk.Label(user_interface_frame, text=f"Welcome, {current_user}!").pack()
+    profile_button = tk.Button(
+        user_interface_frame, text="Profile", command=show_profile
+    )
+    profile_button.pack(side=tk.TOP, anchor=tk.NW)
+    # 在這裡添加更多使用者介面元件
 
 
-# 顯示登入/註冊視窗
-def show_login_register(root, login_register_button, show_user_interface):
-    login_register_window = tk.Toplevel(root)
-    login_register_window.title("Login/Register")
+# 建立主視窗
+root = tk.Tk()
+root.title("My Tkinter App")
+configure_root(root)
 
-    # 登入功能
-    def login():
-        username = username_entry.get()
-        password = password_entry.get()
-        if login_user(username, password):
-            global current_user
-            current_user = username
-            messagebox.showinfo("Success", "Login successful!")
-            login_register_window.destroy()
-            login_register_button.pack_forget()
-            show_user_interface()
-        else:
-            messagebox.showerror("Error", "Login failed! Please register.")
+# 建立登入/註冊按鈕
+login_register_button = tk.Button(
+    root,
+    text="Login/Register",
+    command=lambda: show_login_register(
+        root, login_register_button, show_user_interface
+    ),
+)
+login_register_button.pack()
 
-    # 註冊功能
-    def register():
-        username = username_entry.get()
-        password = password_entry.get()
-        if not validate_email(username):
-            messagebox.showerror(
-                "Error", "Invalid email format. Please use a Gmail address."
-            )
-            return
-        if not validate_password(password):
-            messagebox.showerror(
-                "Error",
-                "Password must contain at least one uppercase and one lowercase letter.",
-            )
-            return
-        register_user(username, password)
-        messagebox.showinfo("Success", "Registration successful! You can now log in.")
-
-    # 建立登入/註冊視窗元件
-    tk.Label(login_register_window, text="Username (Gmail):").pack()
-    username_entry = tk.Entry(login_register_window)
-    username_entry.pack()
-
-    tk.Label(login_register_window, text="Password:").pack()
-    password_entry = tk.Entry(login_register_window, show="*")
-    password_entry.pack()
-
-    tk.Button(login_register_window, text="Login", command=login).pack()
-    tk.Button(login_register_window, text="Register", command=register).pack()
+# 啟動主事件迴圈
+root.mainloop()

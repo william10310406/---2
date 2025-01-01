@@ -1,12 +1,17 @@
+import tkinter as tk
+
+
 def configure_root(root):
     root.title("My Tkinter App")
     root.geometry("800x600")
     root.configure(bg="#f0f0f0")
 
+
 def add_scrollbar(frame):
     scrollbar = tk.Scrollbar(frame)
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
     return scrollbar
+
 
 def make_draggable(widget):
     def on_drag(event):

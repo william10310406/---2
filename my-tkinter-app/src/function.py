@@ -1,3 +1,6 @@
+import sqlite3
+
+
 def create_file(filename):
     # 建立一個空檔案
     with open(filename, "w") as file:
@@ -32,8 +35,6 @@ def write_file(filename, content):
 
 def init_db():
     # 初始化資料庫，建立 users 表格
-    import sqlite3
-
     conn = sqlite3.connect("app.db")
     cursor = conn.cursor()
     cursor.execute(
@@ -41,7 +42,9 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY,
             username TEXT NOT NULL,
-            password TEXT NOT NULL
+            password TEXT NOT NULL,
+            email TEXT,
+            phone TEXT
         )
     """
     )
@@ -49,14 +52,13 @@ def init_db():
     conn.close()
 
 
-def register_user(username, password):
-    # 註冊新使用者，將使用者名稱和密碼存入資料庫
-    import sqlite3
-
+def register_user(username, password, email="", phone=""):
+    # 註冊新使用者，將使用者名稱、密碼、電子郵件和電話存入資料庫
     conn = sqlite3.connect("app.db")
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO users (username, password) VALUES (?, ?)", (username, password)
+        "INSERT INTO users (username, password, email, phone) VALUES (?, ?, ?, ?)",
+        (username, password, email, phone),
     )
     conn.commit()
     conn.close()
@@ -64,8 +66,6 @@ def register_user(username, password):
 
 def login_user(username, password):
     # 登入功能，檢查使用者名稱和密碼是否匹配
-    import sqlite3
-
     conn = sqlite3.connect("app.db")
     cursor = conn.cursor()
     cursor.execute("SELECT password FROM users WHERE username = ?", (username,))
@@ -77,14 +77,27 @@ def login_user(username, password):
     return password == stored_password
 
 
-def update_user(username, new_password):
-    # 更新使用者的密碼
-    import sqlite3
-
+def get_user_info(username):
+    # 獲取使用者資訊
     conn = sqlite3.connect("app.db")
     cursor = conn.cursor()
     cursor.execute(
-        "UPDATE users SET password = ? WHERE username = ?", (new_password, username)
+        "SELECT username, email, phone FROM users WHERE username = ?", (username,)
+    )
+    result = cursor.fetchone()
+    conn.close()
+    if result:
+        return {"username": result[0], "email": result[1], "phone": result[2]}
+    return None
+
+
+def update_user_info(old_username, new_username, email, phone):
+    # 更新使用者資訊
+    conn = sqlite3.connect("app.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE users SET username=?, email = ?, phone = ? WHERE username = ?",
+        (new_username, email, phone, old_username),
     )
     conn.commit()
     conn.close()
