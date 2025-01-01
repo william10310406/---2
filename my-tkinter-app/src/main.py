@@ -15,6 +15,7 @@ logger = ActionLogger()
 current_user = None
 
 
+# 顯示使用者介面
 def show_user_interface():
     user_interface_frame = tk.Frame(root)
     user_interface_frame.pack()
@@ -22,10 +23,12 @@ def show_user_interface():
     # 在這裡添加更多使用者介面元件
 
 
+# 建立主視窗
 root = tk.Tk()
 root.title("My Tkinter App")
 configure_root(root)
 
+# 建立登入/註冊按鈕
 login_register_button = tk.Button(
     root,
     text="Login/Register",
@@ -35,4 +38,5 @@ login_register_button = tk.Button(
 )
 login_register_button.pack()
 
+# 啟動主事件迴圈
 root.mainloop()
